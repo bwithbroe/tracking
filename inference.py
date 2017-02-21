@@ -151,6 +151,7 @@ class ExactInference(InferenceModule):
 
         if noisyDistance is None:
             newBeliefs[self.getJailPosition()] = 1.0
+            self.beliefs = newBeliefs
             return
 
         # fill in the distribution
