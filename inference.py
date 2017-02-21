@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -147,22 +147,25 @@ class ExactInference(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
-        if noisyDistance is None:
-            pass
-        else:
-            newBeliefs = Counter()
-            # fill in the distribution
-            for pos1 in self.legalPositions:
-                # start with P(e_{t+1}|x_{t+1})
-                newBeliefs[pos1] = emissionModel[util.manhattanDistance(pacmanPosition, pos1)]
-                # multiply by the sum 
-                for pos2 in self.legalPositions:
-                    newBeliefs[pos1] *= self.getPositionDistribution(gameState)[pos2] * self.beliefs[pos2]
-            newBeliefs.normalize()
-            self.beliefs = newBeliefs
+        newBeliefs = util.Counter()
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if noisyDistance is None:
+            newBeliefs[self.getJailPosition()] = 1.0
+            return
+
+        # fill in the distribution
+        for pos1 in self.legalPositions:
+            # start with P(e_{t+1}|x_{t+1})
+            newBeliefs[pos1] = emissionModel[util.manhattanDistance(pacmanPosition, pos1)]
+            # multiply by the sum
+            priorSum = 0
+            for pos2 in self.legalPositions:
+                self.setGhostPosition(gameState, pos2)
+                priorSum += self.getPositionDistribution(gameState)[pos1] * self.beliefs[pos2]
+            newBeliefs[pos1] *= priorSum
+
+        newBeliefs.normalize()
+        self.beliefs = newBeliefs
 
 
     def elapseTime(self, gameState):
@@ -525,4 +528,3 @@ def setGhostPositions(gameState, ghostPositions):
         conf = game.Configuration(pos, game.Directions.STOP)
         gameState.data.agentStates[index + 1] = game.AgentState(conf, False)
     return gameState
-
