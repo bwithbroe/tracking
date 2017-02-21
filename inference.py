@@ -147,6 +147,19 @@ class ExactInference(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
+        if noisyDistance is None:
+            pass
+        else:
+            newBeliefs = Counter()
+            # fill in the distribution
+            for pos1 in self.legalPositions:
+                # start with P(e_{t+1}|x_{t+1})
+                newBeliefs[pos1] = emissionModel[util.manhattanDistance(pacmanPosition, pos1)]
+                # multiply by the sum 
+                for pos2 in self.legalPositions:
+                    newBeliefs[pos1] *= self.getPositionDistribution(gameState)[pos2] * self.beliefs[pos2]
+            newBeliefs.normalize()
+            self.beliefs = newBeliefs
 
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
