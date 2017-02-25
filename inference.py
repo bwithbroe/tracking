@@ -145,19 +145,15 @@ class ExactInference(InferenceModule):
              captured).
         """
         noisyDistance = observation
-        emissionModel = busters.getObservationDistribution(noisyDistance)
-        pacmanPosition = gameState.getPacmanPosition()
         newBeliefs = util.Counter()
-
         if noisyDistance is None:
             newBeliefs[self.getJailPosition()] = 1.0
-            self.beliefs = newBeliefs
-            return
-
-        for pos in self.legalPositions:
-            newBeliefs[pos] = emissionModel[util.manhattanDistance(pacmanPosition, pos)] * self.beliefs[pos]
-
-        newBeliefs.normalize()
+        else:
+            emissionModel = busters.getObservationDistribution(noisyDistance)
+            pacmanPosition = gameState.getPacmanPosition()
+            for pos in self.legalPositions:
+                newBeliefs[pos] = emissionModel[util.manhattanDistance(pacmanPosition, pos)] * self.beliefs[pos]
+            newBeliefs.normalize()
         self.beliefs = newBeliefs
 
 
@@ -214,8 +210,16 @@ class ExactInference(InferenceModule):
         are used and how they combine to give us a belief distribution over new
         positions after a time update from a particular position.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        newPosDists = {}
+        for oldPos in self.legalPositions:
+            newPosDists[oldPos] = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+
+        newBeliefs = util.Counter()
+        for newPos in self.legalPositions:
+            for oldPos in self.legalPositions:
+                newBeliefs[newPos] += newPosDists[oldPos][newPos] * self.beliefs[oldPos]
+        self.beliefs = newBeliefs
+
 
     def getBeliefDistribution(self):
         return self.beliefs
