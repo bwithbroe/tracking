@@ -154,16 +154,8 @@ class ExactInference(InferenceModule):
             self.beliefs = newBeliefs
             return
 
-        # fill in the distribution
-        for pos1 in self.legalPositions:
-            # start with P(e_{t+1}|x_{t+1})
-            newBeliefs[pos1] = emissionModel[util.manhattanDistance(pacmanPosition, pos1)]
-            # multiply by the sum
-            priorSum = 0
-            for pos2 in self.legalPositions:
-                self.setGhostPosition(gameState, pos2)
-                priorSum += self.getPositionDistribution(gameState)[pos1] * self.beliefs[pos2]
-            newBeliefs[pos1] *= priorSum
+        for pos in self.legalPositions:
+            newBeliefs[pos] = emissionModel[util.manhattanDistance(pacmanPosition, pos)] * self.beliefs[pos]
 
         newBeliefs.normalize()
         self.beliefs = newBeliefs
