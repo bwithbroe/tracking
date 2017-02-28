@@ -470,7 +470,35 @@ class JointParticleFilter:
             return
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
-        "*** YOUR CODE HERE ***"
+        allZero = True
+        for i in xrange(self.numGhosts):
+            observation = noisyDistances[i]
+            # see if we ate the ghost
+            if observation is None:
+                self.particles = [self.getJailPosition()] * self.numParticles
+                continue
+            # update particles based on observations
+            noisyDistance = observation
+            emissionModel = emissionModels[i]
+            weightedParticles = util.Counter()
+            for particle in self.particles:
+                position = particle[i]
+                weight = emissionModel[util.manhattanDistance(pacmanPosition, position)]
+                weightedParticles[particle] += weight
+                if weight != 0:
+                    allZero = False
+        # check for particle depletion
+        if allZero:
+            self.initializeUniformly(gameState)
+            return
+        # (don't need to normalize because util.sample does it for us)
+        self.particles = []
+        for _ in xrange(self.numParticles):
+            particle = []
+            for i in xrange(self.numGhosts):
+                particle.append(util.sample(weightedPositions[i]))
+            self.particles.append(tuple(particle))
+
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -537,8 +565,12 @@ class JointParticleFilter:
         self.particles = newParticles
 
     def getBeliefDistribution(self):
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        beliefs = util.Counter()
+        for position in self.particles:
+            beliefs[position] += 1
+        beliefs.normalize()
+        return beliefs
+
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
