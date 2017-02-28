@@ -423,7 +423,7 @@ class JointParticleFilter:
         random.shuffle(particles)
         self.particles = []
         for i in range(self.numParticles):
-            self.particles.append(particles[p])
+            self.particles.append(particles[i % len(particles)])
 
     def addGhostAgent(self, agent):
         """
