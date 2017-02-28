@@ -473,24 +473,13 @@ class JointParticleFilter:
         allZero = True
         # weigh particles
         weightedParticles = util.Counter()
-        for ghostIndex in xrange(self.numGhosts):
-            # see if we ate the ghost
-            if noisyDistances[ghostIndex] is None:
-                for i in xrange(self.numParticles):
-                    self.particles[i] = self.getParticleWithGhostInJail(self.particles[i], ghostIndex)
-                continue
-            # update particles based on observations
-            emissionModel = emissionModels[ghostIndex]
-            for particle in self.particles:
+        # update particles based on observations
+        for particle in self.particles:
+            moreWeight = 1.0
+            for ghostIndex in xrange(self.numGhosts):
                 ghostPosition = particle[ghostIndex]
-                weight = emissionModel[util.manhattanDistance(pacmanPosition, ghostPosition)]
-                weightedParticles[particle] += weight
-                if weight != 0:
-                    allZero = False
-        # check for particle depletion
-        if allZero:
-            self.initializeUniformly(gameState)
-            return
+                moreWeight *= emissionModels[ghostIndex][util.manhattanDistance(pacmanPosition, ghostPosition)]
+            weightedParticles[particle] += moreWeight
         # (don't need to normalize because util.sample does it for us)
         self.particles = []
         for _ in xrange(self.numParticles):
