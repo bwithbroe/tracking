@@ -419,7 +419,11 @@ class JointParticleFilter:
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        "*** YOUR CODE HERE ***"
+        particles = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
+        random.shuffle(particles)
+        self.particles = []
+        for p in self.numParticles:
+            self.particles.append(p)
 
     def addGhostAgent(self, agent):
         """
